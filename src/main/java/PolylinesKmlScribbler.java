@@ -40,7 +40,7 @@ public class PolylinesKmlScribbler {
         this.ownStream = true;
 
         open(filename);
-        addHeader(null);
+        addHeader(filename);
         addDefaultStyles();
     }
 
