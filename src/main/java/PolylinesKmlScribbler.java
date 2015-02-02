@@ -12,9 +12,7 @@ public class PolylinesKmlScribbler {
     private Writer kmlStreamWriter;
     private boolean isFolderOpened;
     private boolean isFooterOpen;
-    private String folderName;
     private String defaultStyleName;
-    private boolean ownStream;
 
     public static String tmcLocationStyleName = "tmc_location";
 
@@ -23,9 +21,7 @@ public class PolylinesKmlScribbler {
         this.kmlStreamWriter = kmlStreamWriter;
         this.isFolderOpened = false;
         this.isFooterOpen = false;
-        this.folderName = "";
         this.defaultStyleName = "Default";
-        this.ownStream = true;
 
         addHeader(null);
         addDefaultStyles();
@@ -35,9 +31,7 @@ public class PolylinesKmlScribbler {
 
         this.isFolderOpened = false;
         this.isFooterOpen = false;
-        this.folderName = "";
         this.defaultStyleName = "Default";
-        this.ownStream = true;
 
         open(filename);
         addHeader(filename);
@@ -49,21 +43,8 @@ public class PolylinesKmlScribbler {
         if (isFolderOpened)
             return;
 
-        StringBuilder envelop = new StringBuilder();
-        envelop.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-        envelop.append("<kml xmlns=\"http://www.opengis.net/kml/2.2\" xmlns:gx=\"http://www.google.com/kml/ext/2.2\" xmlns:kml=\"http://www.opengis.net/kml/2.2\" xmlns:atom=\"http://www.w3.org/2005/Atom\">");
-        envelop.append("<Document>");
-
-        if (name != null && !name.isEmpty())
-        {
-            envelop.append("<name>" + name + "</name>");
-        }
-
-        envelop.append("<open>1</open>");
-        envelop.append("<Folder><name>" + name + "</name><open>1</open>");
         isFolderOpened = true;
-
-        writeToStream(envelop.toString());
+        writeToStream(KMLTemplates.getHeader(name));
     }
 
     /**
@@ -72,17 +53,7 @@ public class PolylinesKmlScribbler {
      * @param icon url to icon
      */
     public void defineIconStyle(String name, String icon) {
-        StringBuilder style = new StringBuilder();
-
-        style.append("<Style id=\"" + name + "\">");
-        style.append("<IconStyle>");
-        style.append("<scale>1</scale>");
-        style.append("<Icon>");
-        style.append("<href>" + icon + "</href>");
-        style.append("</Icon>");
-        style.append("</IconStyle>");
-        style.append("</Style>");
-        writeToStream(style.toString());
+        writeToStream(KMLTemplates.getIconStyle(name, icon));
     }
 
     /**
@@ -103,18 +74,7 @@ public class PolylinesKmlScribbler {
      * @param width Width of the line, in pixels
      */
     public void defineLineStyle(String name, String color, String colorMode, int width) {
-
-        StringBuilder style = new StringBuilder();
-
-        style.append("<Style id=\"" + name + "\">");
-        style.append("<LineStyle>");
-        style.append("<color>" + color + "</color>");
-        if (colorMode != null && !colorMode.isEmpty())
-            style.append("<colorMode>" + colorMode + "</colorMode>");
-        style.append("<width>" + width + "</width>");
-        style.append("</LineStyle>");
-        style.append("</Style>");
-        writeToStream(style.toString());
+        writeToStream(KMLTemplates.getLineStyle(name, color, colorMode, width));
     }
 
     private void addDefaultStyles() {
@@ -126,65 +86,44 @@ public class PolylinesKmlScribbler {
      * Draw line string under default style
      * @param name
      * @param desctiption
-     * @param iGeometry
+     * @param points
      */
-    public void scribeGeoPolyline(String name, String desctiption, List<Point> iGeometry) {
-        scribeGeoPolyline(name, desctiption, iGeometry, defaultStyleName);
+    public void scribeGeoPolyline(String name, String desctiption, List<Point> points) {
+        scribeGeoPolyline(name, desctiption, points, defaultStyleName);
     }
 
-    public void scribeGeoPolyline(String name, String desctiption, List<Point> iGeometry, String styleName) {
-        StringBuilder placemark = new StringBuilder();
-
-        placemark.append("<Placemark>");
-        placemark.append("<name>" + name + "</name>"); //TODO escape string in original
-        if (desctiption != null && !desctiption.isEmpty())
-            placemark.append("<description>" + desctiption + "</description>"); //in original new XCData(desctiption)
-        placemark.append("<styleUrl>" + styleName + "</styleUrl>");
-        placemark.append("<tessellate>1</tessellate>");
-
-        placemark.append("<LineString>");
-        placemark.append("<coordinates>");
-
-        for (Point point:iGeometry) {
-            double lon = new BigDecimal(String.valueOf(point.getLongitute())).setScale(6, BigDecimal.ROUND_HALF_UP).doubleValue();
-            double lat = new BigDecimal(String.valueOf(point.getLatitute())).setScale(6, BigDecimal.ROUND_HALF_UP).doubleValue();
-            placemark.append(lon + "," + lat);
-        }
-
-        placemark.append("</coordinates>");
-        placemark.append("</LineString>");
-        placemark.append("</Placemark>");
-
-        writeToStream(placemark.toString());
+    /**
+     * Draw line with defined style
+     * @param name
+     * @param desctiption
+     * @param points
+     * @param styleName
+     */
+    public void scribeGeoPolyline(String name, String desctiption, List<Point> points, String styleName) {
+        writeToStream(KMLTemplates.getScribeGeoPolyline(name, desctiption, points, styleName));
     }
 
+    /**
+     * Draw point with empty style
+     * @param name
+     * @param lat
+     * @param lon
+     */
     public void pointPlacemark(String name, double lat, double lon) {
         pointPlacemark(name, lat, lon, null, null);
     }
 
+    /**
+     * Draw point with defined style
+     * @param name
+     * @param lat
+     * @param lon
+     * @param description
+     * @param styleName
+     */
     public void pointPlacemark(String name, double lat, double lon, String description, String styleName)
     {
-        StringBuilder placemark = new StringBuilder();
-
-        placemark.append("<Placemark>");
-        if (name != null && !name.isEmpty()) {
-            placemark.append("<name>" + name + "</name>"); // TODO escape as in original
-        }
-
-        if (description != null && !description.isEmpty()) {
-            placemark.append("<description>" + description + "</description>"); // TODO escape as in original
-        }
-
-        if (styleName != null && !styleName.isEmpty()) {
-            placemark.append("<styleUrl>" + styleName + "</styleUrl>");
-        }
-
-        placemark.append("<Point>");
-        placemark.append("<coordinates>" + lon + "," + lat + "</coordinates>");
-        placemark.append("</Point>");
-        placemark.append("</Placemark>");
-
-        writeToStream(placemark.toString());
+        writeToStream(KMLTemplates.getPointPlacemark(name, lat, lon, description, styleName));
     }
 
     public void tmcLocation(int code, String name, double lat, double lon) {
@@ -205,6 +144,10 @@ public class PolylinesKmlScribbler {
         isFooterOpen = false;
     }
 
+    /**
+     * Open file to writer stream
+     * @param fileName
+     */
     private void open(String fileName) {
         // already opened?
         if (kmlStreamWriter != null)
@@ -239,8 +182,11 @@ public class PolylinesKmlScribbler {
         }
     }
 
+    /**
+     * Write char content to writer stream
+     * @param content
+     */
     private void writeToStream(String content) {
-
         try {
             if (kmlStreamWriter != null)
             {
@@ -257,6 +203,9 @@ public class PolylinesKmlScribbler {
         }
     }
 
+    /**
+     * Add footer of document
+     */
     public void finishDocument() {
         if (isFolderOpened)
         {
@@ -268,6 +217,9 @@ public class PolylinesKmlScribbler {
             addFooter();
     }
 
+    /**
+     * Close Stream
+     */
     public void close() {
 
         finishDocument();
