@@ -88,7 +88,7 @@ public class PolylinesKmlScribbler {
      * @param desctiption
      * @param points
      */
-    public void scribeGeoPolyline(String name, String desctiption, List<Point> points) {
+    public void scribeGeoPolyline(String name, String desctiption, double[] points) {
         scribeGeoPolyline(name, desctiption, points, defaultStyleName);
     }
 
@@ -99,7 +99,7 @@ public class PolylinesKmlScribbler {
      * @param points
      * @param styleName
      */
-    public void scribeGeoPolyline(String name, String desctiption, List<Point> points, String styleName) {
+    public void scribeGeoPolyline(String name, String desctiption, double[] points, String styleName) {
         writeToStream(KMLTemplates.getScribeGeoPolyline(name, desctiption, points, styleName));
     }
 

@@ -79,7 +79,7 @@ public class KMLTemplates {
      * @param points
      * @param styleName
      */
-    public static String getScribeGeoPolyline(String name, String desctiption, List<Point> points, String styleName) {
+    public static String getScribeGeoPolyline(String name, String desctiption, double[] points, String styleName) {
 
         StringBuilder placemark = new StringBuilder();
 
@@ -93,9 +93,9 @@ public class KMLTemplates {
         placemark.append("<LineString>");
         placemark.append("<coordinates>");
 
-        for (Point point:points) {
-            double lon = new BigDecimal(String.valueOf(point.getLongitute())).setScale(6, BigDecimal.ROUND_HALF_UP).doubleValue();
-            double lat = new BigDecimal(String.valueOf(point.getLatitute())).setScale(6, BigDecimal.ROUND_HALF_UP).doubleValue();
+        for (int i = 0; i < points.length; i += 2) {
+            double lon = new BigDecimal(String.valueOf(points[i])).setScale(6, BigDecimal.ROUND_HALF_UP).doubleValue();
+            double lat = new BigDecimal(String.valueOf(points[i+1])).setScale(6, BigDecimal.ROUND_HALF_UP).doubleValue();
             placemark.append(lon + "," + lat);
             placemark.append(" ");
         }
